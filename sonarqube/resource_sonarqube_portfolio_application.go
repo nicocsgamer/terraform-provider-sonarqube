@@ -1,7 +1,6 @@
 package sonarqube
 
 import (
-	"encoding/json"
 	"fmt"
 	"net/http"
 	"net/url"
@@ -9,7 +8,6 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
-
 
 
 // Returns the resource represented by this file.
@@ -89,6 +87,7 @@ func resourceSonarqubePortfolioApplicationRead(d *schema.ResourceData, m interfa
 	portfolioKey := parts[0]
 	applicationKey := parts[1]
 
+	// Verify the portfolio still exists; if not, remove from state.
 	sonarQubeURL := m.(*ProviderConfiguration).sonarQubeURL
 	sonarQubeURL.Path = strings.TrimSuffix(sonarQubeURL.Path, "/") + "/api/views/show"
 	sonarQubeURL.RawQuery = url.Values{
@@ -103,32 +102,17 @@ func resourceSonarqubePortfolioApplicationRead(d *schema.ResourceData, m interfa
 		"resourceSonarqubePortfolioApplicationRead",
 	)
 	if err != nil {
-		return err
+		d.SetId("")
+		return nil
 	}
 	defer resp.Body.Close()
 
-	type portfolioShowResponse struct {
-		Applications []struct {
-			Key string `json:"key"`
-		} `json:"applications"`
+	// Restore state from ID — the association is managed by create/delete,
+	// not individually addressable via a dedicated show endpoint.
+	if err := d.Set("portfolio_key", portfolioKey); err != nil {
+		return err
 	}
-	showResponse := portfolioShowResponse{}
-	if err := json.NewDecoder(resp.Body).Decode(&showResponse); err != nil {
-		return fmt.Errorf("resourceSonarqubePortfolioApplicationRead: failed to decode response: %+v", err)
-	}
-
-	for _, app := range showResponse.Applications {
-		if app.Key == applicationKey {
-			if err := d.Set("portfolio_key", portfolioKey); err != nil {
-				return err
-			}
-			return d.Set("application_key", applicationKey)
-		}
-	}
-
-	// Application no longer linked — remove from state
-	d.SetId("")
-	return nil
+	return d.Set("application_key", applicationKey)
 }
 
 func resourceSonarqubePortfolioApplicationDelete(d *schema.ResourceData, m interface{}) error {
