@@ -10,6 +10,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
+
+
 // Returns the resource represented by this file.
 func resourceSonarqubePortfolioApplication() *schema.Resource {
 	return &schema.Resource{
@@ -59,10 +61,12 @@ func resourceSonarqubePortfolioApplicationCreate(d *schema.ResourceData, m inter
 		http.StatusOK,
 		"resourceSonarqubePortfolioApplicationCreate",
 	)
-	if err != nil {
+	if err != nil && !strings.Contains(err.Error(), "already references") {
 		return err
 	}
-	defer resp.Body.Close()
+	if resp.Body != nil {
+		defer resp.Body.Close()
+	}
 
 	d.SetId(fmt.Sprintf("%s/%s", portfolioKey, applicationKey))
 
