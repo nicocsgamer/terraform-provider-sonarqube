@@ -355,7 +355,11 @@ func resourceSonarqubePortfolioCreate(d *schema.ResourceData, m interface{}) err
 		return err
 	}
 
-	if err := portfolioRefresh(d.Get("key").(string), m); err != nil {
+	refreshKey := d.Get("key").(string)
+	if parent := d.Get("parent").(string); parent != "" {
+		refreshKey = parent
+	}
+	if err := portfolioRefresh(refreshKey, m); err != nil {
 		return err
 	}
 
@@ -408,7 +412,11 @@ func resourceSonarqubePortfolioUpdate(d *schema.ResourceData, m interface{}) err
 		}
 	}
 
-	if err := portfolioRefresh(d.Id(), m); err != nil {
+	refreshKey := d.Id()
+	if parent := d.Get("parent").(string); parent != "" {
+		refreshKey = parent
+	}
+	if err := portfolioRefresh(refreshKey, m); err != nil {
 		return err
 	}
 
