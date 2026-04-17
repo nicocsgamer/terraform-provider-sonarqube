@@ -79,6 +79,7 @@ func Provider() *schema.Provider {
 		// Add the resources supported by this provider to this map.
 		ResourcesMap: map[string]*schema.Resource{
 			"sonarqube_application":                          resourceSonarqubeApplication(),
+			"sonarqube_application_project":                  resourceSonarqubeApplicationProject(),
 			"sonarqube_portfolio_application":                resourceSonarqubePortfolioApplication(),
 			"sonarqube_alm_azure":                            resourceSonarqubeAlmAzure(),
 			"sonarqube_azure_binding":                        resourceSonarqubeAzureBinding(),
