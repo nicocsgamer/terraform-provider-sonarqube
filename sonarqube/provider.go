@@ -81,6 +81,7 @@ func Provider() *schema.Provider {
 			"sonarqube_application":                          resourceSonarqubeApplication(),
 			"sonarqube_application_project":                  resourceSonarqubeApplicationProject(),
 			"sonarqube_portfolio_application":                resourceSonarqubePortfolioApplication(),
+			"sonarqube_portfolio_sub_portfolio":              resourceSonarqubePortfolioSubPortfolio(),
 			"sonarqube_alm_azure":                            resourceSonarqubeAlmAzure(),
 			"sonarqube_azure_binding":                        resourceSonarqubeAzureBinding(),
 			"sonarqube_group":                                resourceSonarqubeGroup(),
