@@ -345,6 +345,10 @@ func resourceSonarqubePortfolioCreate(d *schema.ResourceData, m interface{}) err
 		return err
 	}
 
+	if err := portfolioRefresh(d.Get("key").(string), m); err != nil {
+		return err
+	}
+
 	return resourceSonarqubePortfolioRead(d, m)
 }
 
@@ -392,6 +396,10 @@ func resourceSonarqubePortfolioUpdate(d *schema.ResourceData, m interface{}) err
 		if err != nil {
 			return fmt.Errorf("error updating Sonarqube selection mode: %+v", err)
 		}
+	}
+
+	if err := portfolioRefresh(d.Id(), m); err != nil {
+		return err
 	}
 
 	return resourceSonarqubePortfolioRead(d, m)

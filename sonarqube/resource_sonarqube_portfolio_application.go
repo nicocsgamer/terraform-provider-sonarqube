@@ -65,6 +65,11 @@ func resourceSonarqubePortfolioApplicationCreate(d *schema.ResourceData, m inter
 	defer resp.Body.Close()
 
 	d.SetId(fmt.Sprintf("%s/%s", portfolioKey, applicationKey))
+
+	if err := portfolioRefresh(portfolioKey, m); err != nil {
+		return err
+	}
+
 	return resourceSonarqubePortfolioApplicationRead(d, m)
 }
 

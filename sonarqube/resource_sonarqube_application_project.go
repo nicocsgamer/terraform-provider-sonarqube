@@ -33,6 +33,12 @@ func resourceSonarqubeApplicationProject() *schema.Resource {
 				ForceNew:    true,
 				Description: "The key of the Project to link.",
 			},
+			"portfolio_key": {
+				Type:        schema.TypeString,
+				Optional:    true,
+				ForceNew:    true,
+				Description: "The key of the root Portfolio to rebuild after linking. If set, triggers api/views/refresh.",
+			},
 		},
 	}
 }
@@ -65,6 +71,13 @@ func resourceSonarqubeApplicationProjectCreate(d *schema.ResourceData, m interfa
 	defer resp.Body.Close()
 
 	d.SetId(fmt.Sprintf("%s/%s", applicationKey, projectKey))
+
+	if portfolioKey := d.Get("portfolio_key").(string); portfolioKey != "" {
+		if err := portfolioRefresh(portfolioKey, m); err != nil {
+			return err
+		}
+	}
+
 	return resourceSonarqubeApplicationProjectRead(d, m)
 }
 
