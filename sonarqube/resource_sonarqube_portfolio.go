@@ -70,6 +70,12 @@ func resourceSonarqubePortfolio() *schema.Resource {
 				ForceNew:    true,
 				Description: "The key of the Portfolio to create",
 			},
+			"parent": {
+				Type:        schema.TypeString,
+				Optional:    true,
+				ForceNew:    true,
+				Description: "Key of the parent Portfolio. When set, this Portfolio is created as a sub-portfolio (qualifier SVW) nested inside the parent.",
+			},
 			"name": {
 				Type:        schema.TypeString,
 				Required:    true,
@@ -312,12 +318,16 @@ func resourceSonarqubePortfolioCreate(d *schema.ResourceData, m interface{}) err
 	sonarQubeURL := m.(*ProviderConfiguration).sonarQubeURL
 	sonarQubeURL.Path = strings.TrimSuffix(sonarQubeURL.Path, "/") + "/api/views/create"
 
-	sonarQubeURL.RawQuery = url.Values{
+	params := url.Values{
 		"description": []string{d.Get("description").(string)},
 		"key":         []string{d.Get("key").(string)},
 		"name":        []string{d.Get("name").(string)},
 		"visibility":  []string{d.Get("visibility").(string)},
-	}.Encode()
+	}
+	if parent := d.Get("parent").(string); parent != "" {
+		params.Set("parent", parent)
+	}
+	sonarQubeURL.RawQuery = params.Encode()
 
 	resp, err := httpRequestHelper(
 		m.(*ProviderConfiguration).httpClient,
@@ -447,6 +457,10 @@ func updateResourceDataFromPortfolioReadResponse(d *schema.ResourceData, portfol
 	errs = append(errs, d.Set("qualifier", portfolioReadResponse.Qualifier))
 	errs = append(errs, d.Set("visibility", portfolioReadResponse.Visibility))
 	errs = append(errs, d.Set("selection_mode", portfolioReadResponse.SelectionMode))
+	// parent is write-only at creation; preserve whatever was set in config
+	if _, ok := d.GetOk("parent"); !ok {
+		errs = append(errs, d.Set("parent", ""))
+	}
 
 	// These fields may or may not be set in the reposnse from SonarQube
 	if len(portfolioReadResponse.Tags) > 0 {
