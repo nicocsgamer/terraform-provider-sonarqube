@@ -371,6 +371,12 @@ func resourceSonarqubePortfolioRead(d *schema.ResourceData, m interface{}) error
 		return err
 	}
 
+	// api/views/show only works for root portfolios (VW).
+	// Sub-portfolios (SVW) are not directly addressable — restore state from config.
+	if parent, ok := d.GetOk("parent"); ok && parent.(string) != "" {
+		return nil
+	}
+
 	portfolioReadResponse, err := readPortfolioFromApi(d, m)
 	if err != nil {
 		return err
