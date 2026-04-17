@@ -56,7 +56,7 @@ func resourceSonarqubePortfolioApplicationCreate(d *schema.ResourceData, m inter
 		m.(*ProviderConfiguration).httpClient,
 		"POST",
 		sonarQubeURL.String(),
-		http.StatusNoContent,
+		http.StatusOK,
 		"resourceSonarqubePortfolioApplicationCreate",
 	)
 	if err != nil {
