@@ -97,18 +97,21 @@ func resourceSonarqubeApplicationCreate(d *schema.ResourceData, m interface{}) e
 		http.StatusOK,
 		"resourceSonarqubeApplicationCreate",
 	)
-	if err != nil {
+	if err != nil && !strings.Contains(err.Error(), "already exists") {
 		return err
 	}
-	defer resp.Body.Close()
 
-	applicationResponse := ApplicationResponse{}
-	err = json.NewDecoder(resp.Body).Decode(&applicationResponse)
-	if err != nil {
-		return fmt.Errorf("resourceSonarqubeApplicationCreate: Failed to decode json into struct: %+v", err)
+	// If the application already existed, set the ID from the key and let Read reconcile.
+	if err != nil && strings.Contains(err.Error(), "already exists") {
+		d.SetId(d.Get("key").(string))
+	} else {
+		defer resp.Body.Close()
+		applicationResponse := ApplicationResponse{}
+		if decodeErr := json.NewDecoder(resp.Body).Decode(&applicationResponse); decodeErr != nil {
+			return fmt.Errorf("resourceSonarqubeApplicationCreate: Failed to decode json into struct: %+v", decodeErr)
+		}
+		d.SetId(applicationResponse.Application.Key)
 	}
-
-	d.SetId(applicationResponse.Application.Key)
 
 	// Set description if provided (separate API call on update endpoint)
 	if desc := d.Get("description").(string); desc != "" {
